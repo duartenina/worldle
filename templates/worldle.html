@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %}Worldle{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.js">
+  </script>
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/jquery-ui.js">
+  </script>
+
+  <link href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/themes/ui-lightness/jquery-ui.css"
+    rel="stylesheet" type="text/css" />
+
+  <img src={{url_for('static', filename='images/' + country + '.png')}}>
+
+  <p></p>
+
+  {% for _, row in previous_guesses %}
+    <p>{{row}}</p>
+  {% endfor %}
+
+  <form method="post" action="/">
+    {% if correct %}
+      <p>CORRECT!</p>
+    {% else %}
+      <input type="text" id="countries" name='guess_input'  autofocus="autofocus" value="{{current_input}}">
+
+      <script>
+        $( function() {
+          var availableCountries = [
+            {% for c in country_list %}
+              "{{c}}",
+            {% endfor %}
+          ];
+          $( "#countries" ).autocomplete({
+            source: availableCountries
+          });
+        });
+      </script>
+
+      <button type="submit" name='guess' value='guess'>Guess</button>
+    {% endif %}
+    <button type='submit' name='reset' value='reset'>New Country</button>
+  </form>
+{% endblock %}
