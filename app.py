@@ -1,9 +1,11 @@
 import io
-import os
+import json
+from dataclasses import dataclass
 from datetime import datetime
 from random import seed, choice
-from tkinter import SE
-from flask import Flask, render_template, Response, request
+from flask import (
+    Flask, render_template, Response, request, make_response
+)
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 from core_funcs import (
     ALL_COUNTRIES, ALL_REGIONS, COUNTRY_LIST,
@@ -15,11 +17,12 @@ app = Flask(__name__)
 app.config['TEMPLATES_AUTO_RELOAD'] = True
 app.jinja_env.auto_reload = True
 
-
-UNKNOWN_COUNTRY = 'error'
-CURRENT_INPUT = ''
-PREVIOUS_GUESSES = []
-SELECTED_REGIONS = ALL_REGIONS
+@dataclass
+class Worldle_Cookies:
+    unknown_country: str
+    current_input: str
+    previous_guesses: list
+    # selected_regions: list = ALL_REGIONS
 
 
 # @app.route("/<country_name>.png")
@@ -32,79 +35,130 @@ def plot_country(country_name):
     return Response(output.getvalue(), mimetype='image/png')
 
 
-def guess():
-    global CURRENT_INPUT, PREVIOUS_GUESSES
-
+def guess(cookies: Worldle_Cookies, response):
     guess = request.form['guess_input']
 
     if guess in ALL_COUNTRIES:
-        dist, direc = calculate_distance_direction(UNKNOWN_COUNTRY, guess)
-        CURRENT_INPUT = ''
-        PREVIOUS_GUESSES.append((
+        dist, direc = calculate_distance_direction(
+            cookies.unknown_country, guess
+        )
+
+        cookies.current_input = ''
+        cookies.previous_guesses.append((
             guess.upper(), f'{dist:.0f}', direc
-            #f'{guess:>30s} | {dist:>5.0f} km | {direc}'
         ))
     else:
-        CURRENT_INPUT = guess
+        cookies.current_input = guess
+
+    response.set_cookie('current_input', cookies.current_input)
+
+    print(cookies.previous_guesses)
+    previous_guesses_str = json.dumps(cookies.previous_guesses)
+    response.set_cookie('previous_guesses', previous_guesses_str)
+
+    return cookies
 
 
-def check_country_ok(country):
-    return os.path.exists(f'static/images/{country}.png')
+def new_random_country(cookies: Worldle_Cookies, response):
+    current_input = ''
+    response.set_cookie('current_input', current_input)
 
-
-# @app.route('/new', methods=['POST'])
-def new_random_country():
-    global UNKNOWN_COUNTRY, PREVIOUS_GUESSES, CURRENT_INPUT
-    CURRENT_INPUT = ''
-    PREVIOUS_GUESSES = []
+    previous_guesses = []
+    previous_guesses_str = json.dumps(previous_guesses)
+    response.set_cookie('previous_guesses', previous_guesses_str)
 
     possible_countries = filter_countries(
         only_geojson=True,
-        regions=SELECTED_REGIONS,
-        min_population=0,
-        min_area=0,
+        # regions=SELECTED_REGIONS,
+        # min_population=0,
+        # min_area=0,
     )
 
-    UNKNOWN_COUNTRY = choice(possible_countries)
+    unknown_country = choice(possible_countries)
+    response.set_cookie('unknown_country', unknown_country)
+
+    if cookies is None:
+        cookies = Worldle_Cookies(unknown_country, current_input, previous_guesses)
+    else:
+        cookies.unknown_country = unknown_country
+        cookies.current_input = current_input
+        cookies.previous_guesses = previous_guesses
+
+    return cookies
 
 
-# @app.route("/")
-def worldle():
+def initialize_cookies(response):
+    # Same initial country, changes daily
+    d0 = datetime(2000, 1, 1)
+    d1 = datetime.now()
+    delta = d1 - d0
+    seed(delta.days)
+
+    cookies = new_random_country(None, response)
+
+    # next countries will be random
+    seed()
+
+    response.set_cookie('is_initialized', 'True')
+
+    return cookies
+
+
+def get_cookies(request, response):
+    is_initialized = request.cookies.get('is_initialized')
+    if is_initialized is None:
+        vars = initialize_cookies(response)
+        cookies = vars
+    else:
+        unknown_country = request.cookies.get('unknown_country')
+        current_input = request.cookies.get('current_input')
+        previous_guesses_str = request.cookies.get('previous_guesses')
+        previous_guesses = json.loads(previous_guesses_str)
+
+        cookies = Worldle_Cookies(unknown_country, current_input, previous_guesses)
+
+    return cookies
+
+
+# def save_cookies(cookies, response):
+#     pass
+
+
+def create_html(cookies: Worldle_Cookies):
     is_correct = (
-        (len(PREVIOUS_GUESSES) > 0)
+        (len(cookies.previous_guesses) > 0)
         and
-        (UNKNOWN_COUNTRY == PREVIOUS_GUESSES[-1][0].lower())
+        (cookies.unknown_country == cookies.previous_guesses[-1][0].lower())
     )
-    print(is_correct)
 
     return render_template(
         'worldle.html',
         correct=is_correct,
-        country=UNKNOWN_COUNTRY,
+        unknown_country=cookies.unknown_country,
         country_list=COUNTRY_LIST,
-        current_input=CURRENT_INPUT,
-        previous_guesses=PREVIOUS_GUESSES
+        current_input=cookies.current_input,
+        previous_guesses=cookies.previous_guesses
     )
 
 
 @app.route("/", methods=['GET', 'POST'])
 def main():
+    response = make_response()
+    cookies = get_cookies(request, response)
+
     if request.method == 'GET':
         pass
     elif request.method == 'POST':
         if request.form.get('guess') == 'guess':
-            guess()
+            cookies = guess(cookies, response)
         elif request.form.get('reset') == 'reset':
-            new_random_country()
+            cookies = new_random_country(cookies, response)
 
-    return worldle()
+    # save_cookies(cookies, response)
+
+    html = create_html(cookies)
+    response.set_data(html)
+
+    return response
 
 
-d0 = datetime(2000, 1, 1)
-d1 = datetime.now()
-delta = d1 - d0
-seed(delta.days)
-
-new_random_country()
-
-seed()
