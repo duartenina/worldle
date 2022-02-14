@@ -2,10 +2,11 @@ import io
 import os
 from datetime import datetime
 from random import seed, choice
+from tkinter import SE
 from flask import Flask, render_template, Response, request
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 from core_funcs import (
-    ALL_COUNTRIES,
+    ALL_COUNTRIES, ALL_REGIONS, COUNTRY_LIST,
     draw_country_border, calculate_distance_direction, filter_countries
 )
 
@@ -15,10 +16,11 @@ app.config['TEMPLATES_AUTO_RELOAD'] = True
 app.jinja_env.auto_reload = True
 
 
-COUNTRY_LIST = list(ALL_COUNTRIES.keys())
 UNKNOWN_COUNTRY = 'error'
 CURRENT_INPUT = ''
 PREVIOUS_GUESSES = []
+SELECTED_REGIONS = ALL_REGIONS
+
 
 # @app.route("/<country_name>.png")
 def plot_country(country_name):
@@ -57,7 +59,10 @@ def new_random_country():
     PREVIOUS_GUESSES = []
 
     possible_countries = filter_countries(
-        only_geojson=True
+        only_geojson=True,
+        regions=SELECTED_REGIONS,
+        min_population=0,
+        min_area=0,
     )
 
     UNKNOWN_COUNTRY = choice(possible_countries)

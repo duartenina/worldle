@@ -8,6 +8,8 @@ from countryinfo import CountryInfo
 # from descartes import PolygonPatch
 
 ALL_COUNTRIES = CountryInfo().all()
+COUNTRY_LIST = list(ALL_COUNTRIES.keys())
+ALL_REGIONS = ('Africa', 'Americas', 'Asia', 'Europe', 'Oceania')
 EARTH_RADIUS = 6378.1       # km
 DIRECTION_ARROWS = {
     0: '🢂',
@@ -33,7 +35,8 @@ def draw_and_save_all_countries():
         plt.close(fig)
 
 
-def filter_countries(only_geojson=True):
+def filter_countries(only_geojson=True, regions=ALL_REGIONS,
+                     min_population=0, min_area=0):
     countries = []
 
     for country_name in ALL_COUNTRIES:
@@ -44,6 +47,25 @@ def filter_countries(only_geojson=True):
                 continue
 
             if country['geoJSON'] == {}:
+                continue
+
+        region = country['region']
+        if region not in regions:
+            continue
+
+        if min_population > 0:
+            pop = country['population']
+
+            if pop < min_population:
+                continue
+
+        if min_area > 0:
+            area = country['area']
+
+            if area is None:
+                continue
+
+            if area < min_area:
                 continue
 
         countries.append(country_name)
