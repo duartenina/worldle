@@ -33,6 +33,24 @@ def draw_and_save_all_countries():
         plt.close(fig)
 
 
+def filter_countries(only_geojson=True):
+    countries = []
+
+    for country_name in ALL_COUNTRIES:
+        country = ALL_COUNTRIES[country_name]
+
+        if only_geojson:
+            if 'geoJSON' not in country:
+                continue
+
+            if country['geoJSON'] == {}:
+                continue
+
+        countries.append(country_name)
+
+    return countries
+
+
 def draw_country_border(country_name):
     country_info = ALL_COUNTRIES[country_name.lower()]
 

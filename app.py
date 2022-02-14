@@ -1,8 +1,13 @@
 import io
-from random import choice
+import os
+from datetime import datetime
+from random import seed, choice
 from flask import Flask, render_template, Response, request
 from matplotlib.backends.backend_agg import FigureCanvasAgg
-from core_funcs import ALL_COUNTRIES, draw_country_border, calculate_distance_direction
+from core_funcs import (
+    ALL_COUNTRIES,
+    draw_country_border, calculate_distance_direction, filter_countries
+)
 
 
 app = Flask(__name__)
@@ -11,10 +16,9 @@ app.jinja_env.auto_reload = True
 
 
 COUNTRY_LIST = list(ALL_COUNTRIES.keys())
-UNKNOWN_COUNTRY = 'albania'
+UNKNOWN_COUNTRY = 'error'
 CURRENT_INPUT = ''
 PREVIOUS_GUESSES = []
-
 
 # @app.route("/<country_name>.png")
 def plot_country(country_name):
@@ -35,12 +39,15 @@ def guess():
         dist, direc = calculate_distance_direction(UNKNOWN_COUNTRY, guess)
         CURRENT_INPUT = ''
         PREVIOUS_GUESSES.append((
-            guess, f'{guess:>30s} | {dist:>5.0f} km | {direc}'
+            guess.upper(), f'{dist:.0f}', direc
+            #f'{guess:>30s} | {dist:>5.0f} km | {direc}'
         ))
     else:
         CURRENT_INPUT = guess
 
-    return worldle()
+
+def check_country_ok(country):
+    return os.path.exists(f'static/images/{country}.png')
 
 
 # @app.route('/new', methods=['POST'])
@@ -49,9 +56,11 @@ def new_random_country():
     CURRENT_INPUT = ''
     PREVIOUS_GUESSES = []
 
-    UNKNOWN_COUNTRY = choice(COUNTRY_LIST)
+    possible_countries = filter_countries(
+        only_geojson=True
+    )
 
-    return worldle()
+    UNKNOWN_COUNTRY = choice(possible_countries)
 
 
 # @app.route("/")
@@ -59,9 +68,8 @@ def worldle():
     is_correct = (
         (len(PREVIOUS_GUESSES) > 0)
         and
-        (UNKNOWN_COUNTRY == PREVIOUS_GUESSES[-1][0])
+        (UNKNOWN_COUNTRY == PREVIOUS_GUESSES[-1][0].lower())
     )
-    print(PREVIOUS_GUESSES)
     print(is_correct)
 
     return render_template(
@@ -77,11 +85,21 @@ def worldle():
 @app.route("/", methods=['GET', 'POST'])
 def main():
     if request.method == 'GET':
-        return worldle()
+        pass
     elif request.method == 'POST':
         if request.form.get('guess') == 'guess':
-            print('guess')
-            return guess()
+            guess()
         elif request.form.get('reset') == 'reset':
-            print('reset')
-            return new_random_country()
+            new_random_country()
+
+    return worldle()
+
+
+d0 = datetime(2000, 1, 1)
+d1 = datetime.now()
+delta = d1 - d0
+seed(delta.days)
+
+new_random_country()
+
+seed()

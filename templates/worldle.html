@@ -1,41 +1,45 @@
 {% extends 'base.html' %}
 
 {% block header %}
-  <h1>{% block title %}Worldle{% endblock %}</h1>
+<h1>{% block title %}Worldle{% endblock %}</h1>
 {% endblock %}
 
 {% block content %}
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.js">
-  </script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/jquery-ui.js"></script>
+  <link href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/themes/ui-lightness/jquery-ui.css" rel="stylesheet" type="text/css" />
 
-  <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/jquery-ui.js">
-  </script>
+  <img class="center" src={{url_for( 'static', filename='images/' + country + '.png')}}>
 
-  <link href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/themes/ui-lightness/jquery-ui.css"
-    rel="stylesheet" type="text/css" />
-
-  <img src={{url_for('static', filename='images/' + country + '.png')}}>
-
-  <p></p>
-
-  {% for _, row in previous_guesses %}
-    <p>{{row}}</p>
-  {% endfor %}
+  <table>
+    <tr>
+      <th>Country</th>
+      <th>Distance</th>
+      <th>Direction</th>
+    </tr>
+    {% for row in previous_guesses %}
+    <tr>
+      {% for val in row %}
+      <td>{{val}}</td>
+      {% endfor %}
+    </tr>
+    {% endfor %}
+  </table>
 
   <form method="post" action="/">
     {% if correct %}
-      <p>CORRECT!</p>
+      <p align="center">CORRECT!</p>
     {% else %}
-      <input type="text" id="countries" name='guess_input'  autofocus="autofocus" value="{{current_input}}">
+      <input type="text" id="countries" name='guess_input' autocomplete="off" autofocus="autofocus" value="{{current_input}}">
 
       <script>
-        $( function() {
+        $(function() {
           var availableCountries = [
             {% for c in country_list %}
               "{{c}}",
             {% endfor %}
           ];
-          $( "#countries" ).autocomplete({
+          $("#countries").autocomplete({
             source: availableCountries
           });
         });

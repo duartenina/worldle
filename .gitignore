@@ -133,3 +133,6 @@ dmypy.json
 
 # Cached Images
 static/images/
+
+countries.yml
+country_list.yml
