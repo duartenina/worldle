@@ -1,3 +1,4 @@
+from audioop import maxpp
 import io
 import json
 from dataclasses import dataclass
@@ -18,11 +19,16 @@ app.config['TEMPLATES_AUTO_RELOAD'] = True
 app.jinja_env.auto_reload = True
 
 @dataclass
-class Worldle_Cookies:
-    unknown_country: str
-    current_input: str
-    previous_guesses: list
-    # selected_regions: list = ALL_REGIONS
+class Worldle_Params:
+    unknown_country: str = ''
+    current_input: str = ''
+    previous_guesses: list = ()
+    num_countries: int = len(ALL_COUNTRIES)
+    min_area_power: float = 0.
+    max_area_power: float = 7.
+    min_pop_power: float = 2.
+    max_pop_power: float = 9.
+    selected_regions: list = ALL_REGIONS
 
 
 # @app.route("/<country_name>.png")
@@ -35,31 +41,30 @@ def plot_country(country_name):
     return Response(output.getvalue(), mimetype='image/png')
 
 
-def guess(cookies: Worldle_Cookies, response):
+def guess(params: Worldle_Params, response):
     guess = request.form['guess_input']
 
     if guess in ALL_COUNTRIES:
         dist, direc = calculate_distance_direction(
-            cookies.unknown_country, guess
+            params.unknown_country, guess
         )
 
-        cookies.current_input = ''
-        cookies.previous_guesses.append((
+        params.current_input = ''
+        params.previous_guesses.append((
             guess.upper(), f'{dist:.0f}', direc
         ))
     else:
-        cookies.current_input = guess
+        params.current_input = guess
 
-    response.set_cookie('current_input', cookies.current_input)
+    response.set_cookie('current_input', params.current_input)
 
-    print(cookies.previous_guesses)
-    previous_guesses_str = json.dumps(cookies.previous_guesses)
+    previous_guesses_str = json.dumps(params.previous_guesses)
     response.set_cookie('previous_guesses', previous_guesses_str)
 
-    return cookies
+    return params
 
 
-def new_random_country(cookies: Worldle_Cookies, response):
+def new_random_country(params: Worldle_Params, response):
     current_input = ''
     response.set_cookie('current_input', current_input)
 
@@ -67,92 +72,164 @@ def new_random_country(cookies: Worldle_Cookies, response):
     previous_guesses_str = json.dumps(previous_guesses)
     response.set_cookie('previous_guesses', previous_guesses_str)
 
+    if params.min_area_power > 0:
+        min_area = 10**params.min_area_power
+    else:
+        min_area = None
+
+    if params.max_area_power < 7:
+        max_area = 10**params.max_area_power
+    else:
+        max_area = None
+
+    if params.min_pop_power > 2:
+        min_population = 10**params.min_pop_power
+    else:
+        min_population = None
+
+    if params.max_pop_power < 9:
+        max_population = 10**params.max_pop_power
+    else:
+        max_population = None
+
     possible_countries = filter_countries(
         only_geojson=True,
-        # regions=SELECTED_REGIONS,
-        # min_population=0,
-        # min_area=0,
+        regions=params.selected_regions,
+        min_area=min_area,
+        max_area=max_area,
+        min_population=min_population,
+        max_population=max_population
     )
 
-    unknown_country = choice(possible_countries)
+    response.set_cookie('selected_regions', json.dumps(params.selected_regions))
+    response.set_cookie('min_area_power', f'{params.min_area_power:.3f}')
+    response.set_cookie('max_area_power', f'{params.max_area_power:.3f}')
+    response.set_cookie('min_pop_power', f'{params.min_pop_power:.3f}')
+    response.set_cookie('max_pop_power', f'{params.max_pop_power:.3f}')
+
+    num_countries = len(possible_countries)
+    response.set_cookie('num_countries', f'{num_countries}')
+
+    if num_countries > 0:
+        unknown_country = choice(possible_countries)
+    else:
+        unknown_country = 'error'
     response.set_cookie('unknown_country', unknown_country)
 
-    if cookies is None:
-        cookies = Worldle_Cookies(unknown_country, current_input, previous_guesses)
-    else:
-        cookies.unknown_country = unknown_country
-        cookies.current_input = current_input
-        cookies.previous_guesses = previous_guesses
+    params.unknown_country = unknown_country
+    params.current_input = current_input
+    params.previous_guesses = previous_guesses
+    params.num_countries = num_countries
 
-    return cookies
+    return params
 
 
-def initialize_cookies(response):
+def initialize_params(response):
     # Same initial country, changes daily
     d0 = datetime(2000, 1, 1)
     d1 = datetime.now()
     delta = d1 - d0
     seed(delta.days)
 
-    cookies = new_random_country(None, response)
+    params = Worldle_Params()
+    params = new_random_country(params, response)
 
     # next countries will be random
     seed()
 
     response.set_cookie('is_initialized', 'True')
 
-    return cookies
+    return params
 
 
-def get_cookies(request, response):
+def get_cookies(request, response, request_type=None):
     is_initialized = request.cookies.get('is_initialized')
     if is_initialized is None:
-        vars = initialize_cookies(response)
-        cookies = vars
+        vars = initialize_params(response)
+        params = vars
     else:
         unknown_country = request.cookies.get('unknown_country')
         current_input = request.cookies.get('current_input')
         previous_guesses_str = request.cookies.get('previous_guesses')
         previous_guesses = json.loads(previous_guesses_str)
+        num_countries = request.cookies.get('num_countries')
 
-        cookies = Worldle_Cookies(unknown_country, current_input, previous_guesses)
+        if request_type == 'new_country':
+            min_area_power = float(request.form.get('area_min'))
+            max_area_power = float(request.form.get('area_max'))
+            min_pop_power = float(request.form.get('population_min'))
+            max_pop_power = float(request.form.get('population_max'))
 
-    return cookies
+            selected_regions = []
+            for region in ALL_REGIONS:
+                chk = request.form.get(region)
+                if chk is not None:
+                    selected_regions.append(region)
+
+            if len(selected_regions) == 0:
+                selected_regions = ALL_REGIONS
+
+            selected_regions = selected_regions
+        else:
+            min_area_power = request.cookies.get('min_area_power')
+            max_area_power = request.cookies.get('max_area_power')
+            min_pop_power = request.cookies.get('min_pop_power')
+            max_pop_power = request.cookies.get('max_pop_power')
+
+            selected_regions_str = request.cookies.get('selected_regions')
+            selected_regions = json.loads(selected_regions_str)
+
+        params = Worldle_Params(
+            unknown_country, current_input, previous_guesses,
+            selected_regions=selected_regions, num_countries=num_countries,
+            min_area_power=min_area_power, max_area_power=max_area_power,
+            min_pop_power=min_pop_power, max_pop_power=max_pop_power
+        )
+
+    return params
 
 
-def create_html(cookies: Worldle_Cookies):
+def create_html(params: Worldle_Params):
     is_correct = (
-        (len(cookies.previous_guesses) > 0)
+        (len(params.previous_guesses) > 0)
         and
-        (cookies.unknown_country == cookies.previous_guesses[-1][0].lower())
+        (params.unknown_country == params.previous_guesses[-1][0].lower())
     )
 
     return render_template(
         'worldle.html',
         correct=is_correct,
-        unknown_country=cookies.unknown_country,
+        unknown_country=params.unknown_country,
         country_list=COUNTRY_LIST,
-        current_input=cookies.current_input,
-        previous_guesses=cookies.previous_guesses
+        current_input=params.current_input,
+        previous_guesses=params.previous_guesses,
+        num_countries=params.num_countries,
+        all_regions=ALL_REGIONS,
+        selected_regions=params.selected_regions,
+        min_area_power=params.min_area_power,
+        max_area_power=params.max_area_power,
+        min_pop_power=params.min_pop_power,
+        max_pop_power=params.max_pop_power,
     )
 
 
 @app.route("/", methods=['GET', 'POST'])
 def main():
     response = make_response()
-    cookies = get_cookies(request, response)
 
     if request.method == 'GET':
-        pass
+        params = get_cookies(request, response, request_type=None)
     elif request.method == 'POST':
         if request.form.get('guess') == 'guess':
-            cookies = guess(cookies, response)
+            params = get_cookies(request, response, request_type='guess')
+            params = guess(params, response)
         elif request.form.get('reset') == 'reset':
-            cookies = new_random_country(cookies, response)
+            params = get_cookies(request, response, request_type='new_country')
+            params = new_random_country(params, response)
 
-    # save_cookies(cookies, response)
+    # save_params(params, response)
 
-    html = create_html(cookies)
+    html = create_html(params)
     response.set_data(html)
 
     return response

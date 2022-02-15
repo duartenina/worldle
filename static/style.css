@@ -82,6 +82,7 @@ td, th {
 
 .slider input[type="range"] {
   width: 95%;
+  margin-top: 5px;
 }
 
 .min {
@@ -98,7 +99,7 @@ td, th {
   width: 90%;
   display: flex;
   justify-content: space-between;
-  padding: 0 10px;
+  padding: 1px 0px;
 }
 
 .sliderticks p {

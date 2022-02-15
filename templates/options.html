@@ -1,34 +1,25 @@
 <h2>Options for random country</h2>
 
 <form method="post" action="/">
+  <div class="center">
+    <label name="num_countries">{{num_countries}} countries possible</label>
+    <p></p>
+  </div>
+
   <fieldset class="regions">
-    <legend>Possible Regions</legend>
-    <div class="region_single">
-      <input type="checkbox" id="Africa" name="region" value="Africa" checked>
-      <label for="Africa">Africa</label>
-    </div>
-    <div class="region_single">
-      <input type="checkbox" id="Americas" name="region" value="Americas" checked>
-      <label for="Americas">Americas</label>
-    </div>
-    <div class="region_single">
-      <input type="checkbox" id="Asia" name="region" value="Asia" checked>
-      <label for="Asia">Asia</label>
-    </div>
-    <div class="region_single">
-      <input type="checkbox" id="Europe" name="region" value="Europe" checked>
-      <label for="Europe">Europe</label>
-    </div>
-    <div class="region_single">
-      <input type="checkbox" id="Oceania" name="region" value="Oceania" checked>
-      <label for="Oceania">Oceania</label>
-    </div>
+    <legend>Regions</legend>
+    {% for region in all_regions %}
+      <div class="region_single">
+        <input type="checkbox" id="{{region}}" name="{{region}}" value="{{region}}" {{ "checked" if region in selected_regions }}>
+        <label for="{{region}}">{{region}}</label>
+      </div>
+    {% endfor %}
   </fieldset>
 
   <fieldset>
     <legend>Area</legend>
     <div class="slider">
-      <input class="min" id="area_min" type="range" min=0 max=7 value=0 step=0.1>
+      <input class="min" id="area_min" name="area_min" type="range" min=0 max=7 value={{min_area_power}} step=0.1>
       <div class="sliderticks">
         <p></p>
         <p></p>
@@ -59,7 +50,7 @@
         <p></p>
         <p></p>
       </div>
-      <input class="max" id="area_max" type="range" min=0 max=7 value=7 step=0.1>
+      <input class="max" id="area_max" name="area_max" type="range" min=0 max=7 value={{max_area_power}} step=0.1>
 
       <label id="area_label"/>
     </div>
@@ -98,7 +89,7 @@
   <fieldset>
     <legend>Population</legend>
     <div class="slider">
-      <input class="min" id="population_min" type="range" min=2 max=9 value=0 step=0.1>
+      <input class="min" id="population_min" name="population_min" type="range" min=2 max=9 value={{min_pop_power}} step=0.1>
       <div class="sliderticks">
         <p></p>
         <p></p>
@@ -129,7 +120,7 @@
         <p></p>
         <p></p>
       </div>
-      <input class="max" id="population_max" type="range" min=2 max=9 value=9 step=0.1>
+      <input class="max" id="population_max" name="population_max" type="range" min=2 max=9 value={{max_pop_power}} step=0.1>
 
       <label id="population_label"/>
     </div>

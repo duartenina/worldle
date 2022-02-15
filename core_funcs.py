@@ -28,6 +28,7 @@ def process_countries_into_dataframe():
 
         area = country.get('area', np.nan)
         pop = country.get('population', np.nan)
+        region = country.get('region', '')
         has_geometry = (
             ('geoJSON' in country)
             and
@@ -35,12 +36,12 @@ def process_countries_into_dataframe():
         )
 
         data_for_df.append(
-            (country_name, area, pop, has_geometry)
+            (country_name, region, area, pop, has_geometry)
         )
 
     return pd.DataFrame(
         data_for_df,
-        columns=['name', 'area', 'population', 'has_geometry']
+        columns=['name', 'region', 'area', 'population', 'has_geometry']
     )
 COUNTRY_DF = process_countries_into_dataframe()
 
@@ -56,42 +57,27 @@ def draw_and_save_all_countries():
 
 
 def filter_countries(only_geojson=True, regions=ALL_REGIONS,
-                     min_population=0, min_area=0):
-    countries = []
+                     min_area=None, max_area=None,
+                     min_population=None, max_population=None):
 
-    for country_name in ALL_COUNTRIES:
-        country = ALL_COUNTRIES[country_name]
+    inds = COUNTRY_DF['region'].isin(regions)
 
-        if only_geojson:
-            if 'geoJSON' not in country:
-                continue
+    if only_geojson:
+        inds &= COUNTRY_DF['has_geometry']
 
-            if country['geoJSON'] == {}:
-                continue
+    if min_area is not None:
+        inds &= COUNTRY_DF['area'] >= min_area
 
-        region = country['region']
-        if region not in regions:
-            continue
+    if max_area is not None:
+        inds &= COUNTRY_DF['area'] <= max_area
 
-        if min_population > 0:
-            pop = country['population']
+    if min_population is not None:
+        inds &= COUNTRY_DF['population'] >= min_population
 
-            if pop < min_population:
-                continue
+    if max_population is not None:
+        inds &= COUNTRY_DF['population'] <= max_population
 
-        if min_area > 0:
-            area = country['area']
-
-            if area is None:
-                continue
-
-            if area < min_area:
-                continue
-
-
-        countries.append(country_name)
-
-    return countries
+    return list(COUNTRY_DF[inds]['name'])
 
 
 def draw_country_border(country_name):
