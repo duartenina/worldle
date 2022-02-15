@@ -1,2 +1,2 @@
 set FLASK_ENV=production
-waitress-serve --call flaskr:create_app
+waitress-serve --port=80 --call flaskr:create_app
