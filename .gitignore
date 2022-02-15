@@ -132,7 +132,7 @@ dmypy.json
 .VSCode/
 
 # Cached Images
-static/images/
+*/static/images/
 
 countries.yml
 country_list.yml

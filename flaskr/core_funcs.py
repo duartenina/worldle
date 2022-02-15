@@ -132,11 +132,11 @@ def calculate_distance_direction(country_1, country_2):
     else:
         direction_str = DIRECTION_ARROWS[direction]
 
-    print((
-        f'{coords_1} -> {coords_2} | '
-        f'{np.rad2deg(dlat):.0f}, {np.rad2deg(dlng):.0f} | '
-        f'd = {dist:.0f} | ang = {angle:.0f} | dir = {direction} | {direction_str}'
-    ))
+    # print((
+    #     f'{coords_1} -> {coords_2} | '
+    #     f'{np.rad2deg(dlat):.0f}, {np.rad2deg(dlng):.0f} | '
+    #     f'd = {dist:.0f} | ang = {angle:.0f} | dir = {direction} | {direction_str}'
+    # ))
 
     return dist, direction_str
 
