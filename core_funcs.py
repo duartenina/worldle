@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import pandas as pd
 from countryinfo import CountryInfo
 
 ALL_COUNTRIES = CountryInfo().all()
@@ -18,6 +19,30 @@ DIRECTION_ARROWS = {
     -180: '🢀',
     360: '✓',
 }
+
+
+def process_countries_into_dataframe():
+    data_for_df = []
+    for country_name in ALL_COUNTRIES:
+        country = ALL_COUNTRIES[country_name]
+
+        area = country.get('area', np.nan)
+        pop = country.get('population', np.nan)
+        has_geometry = (
+            ('geoJSON' in country)
+            and
+            (country['geoJSON'] != {})
+        )
+
+        data_for_df.append(
+            (country_name, area, pop, has_geometry)
+        )
+
+    return pd.DataFrame(
+        data_for_df,
+        columns=['name', 'area', 'population', 'has_geometry']
+    )
+COUNTRY_DF = process_countries_into_dataframe()
 
 
 def draw_and_save_all_countries():
@@ -62,6 +87,7 @@ def filter_countries(only_geojson=True, regions=ALL_REGIONS,
 
             if area < min_area:
                 continue
+
 
         countries.append(country_name)
 
