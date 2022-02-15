@@ -1,0 +1,169 @@
+<h2>Options for random country</h2>
+
+<form method="post" action="/">
+  <fieldset class="regions">
+    <legend>Possible Regions</legend>
+    <div class="region_single">
+      <input type="checkbox" id="Africa" name="region" value="Africa" checked>
+      <label for="Africa">Africa</label>
+    </div>
+    <div class="region_single">
+      <input type="checkbox" id="Americas" name="region" value="Americas" checked>
+      <label for="Americas">Americas</label>
+    </div>
+    <div class="region_single">
+      <input type="checkbox" id="Asia" name="region" value="Asia" checked>
+      <label for="Asia">Asia</label>
+    </div>
+    <div class="region_single">
+      <input type="checkbox" id="Europe" name="region" value="Europe" checked>
+      <label for="Europe">Europe</label>
+    </div>
+    <div class="region_single">
+      <input type="checkbox" id="Oceania" name="region" value="Oceania" checked>
+      <label for="Oceania">Oceania</label>
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Area</legend>
+    <div class="slider">
+      <input id="area_min" type="range" min=0 max=7 value=0 step=0.1>
+      <div class="sliderticks">
+        <p></p>
+        <p></p>
+        <p></p>
+        <p></p>
+        <p></p>
+        <p></p>
+        <p></p>
+        <p></p>
+      </div>
+      <div class="slidertickslabels">
+        <p>Monaco</p>       <!-- ~ 2 -->
+        <p>Tokelau</p>      <!-- ~ 10 -->
+        <p>Anguilla</p>     <!-- ~ 100 -->
+        <p>Hong Kong</p>    <!-- ~ 1_000 -->
+        <p>Lebanon</p>      <!-- ~ 10_000 -->
+        <p>South Korea</p>  <!-- ~ 100_000 -->
+        <p>Egypt</p>        <!-- ~ 1_000_000 -->
+        <p>Russia</p>       <!-- ~ 10_000_000 -->
+      </div>
+      <div class="sliderticks">
+        <p></p>
+        <p></p>
+        <p></p>
+        <p></p>
+        <p></p>
+        <p></p>
+        <p></p>
+        <p></p>
+      </div>
+      <input id="area_max" type="range" min=0 max=7 value=7 step=0.1>
+
+      <label id="area_label"/>
+    </div>
+    <script>
+      var area_slider_min = document.getElementById("area_min");
+      var area_slider_max = document.getElementById("area_max");
+      var area_output = document.getElementById("area_label");
+
+      update_area_text = function() {
+        if (area_slider_min.value > 0) {
+          min_str = (10**area_slider_min.value).toLocaleString(undefined, {maximumFractionDigits: 0});
+        } else {
+          min_str = '-';
+        }
+
+        if (area_slider_max.value < 7) {
+          max_str = (10**area_slider_max.value).toLocaleString(undefined, {maximumFractionDigits: 0});
+        } else {
+          max_str = '-';
+        }
+
+        return "Area from " + min_str + " km^2 to " + max_str + " km^2"
+      }
+
+      area_output.innerHTML = update_area_text();
+
+      area_slider_min.oninput = function() {
+        area_output.innerHTML = update_area_text();
+      }
+      area_slider_max.oninput = function() {
+        area_output.innerHTML = update_area_text();
+      }
+      </script>
+  </fieldset>
+
+  <fieldset>
+    <legend>Population</legend>
+    <div class="slider">
+      <input id="population_min" type="range" min=2 max=9 value=0 step=0.1>
+      <div class="sliderticks">
+        <p></p>
+        <p></p>
+        <p></p>
+        <p></p>
+        <p></p>
+        <p></p>
+        <p></p>
+        <p></p>
+      </div>
+      <div class="slidertickslabels">
+        <p>Pitcairn Islands</p>   <!-- ~ 100 -->
+        <p>Tokelau</p>            <!-- ~ 1_000 -->
+        <p>Nauru</p>              <!-- ~ 10_000 -->
+        <p>Aruba</p>              <!-- ~ 100_000 -->
+        <p>Swaziland</p>          <!-- ~ 1_000_000 -->
+        <p>Benin</p>              <!-- ~ 10_000_000 -->
+        <p>Philippines</p>        <!-- ~ 100_000_000 -->
+        <p>China</p>              <!-- ~ 1_000_000_000 -->
+      </div>
+      <div class="sliderticks">
+        <p></p>
+        <p></p>
+        <p></p>
+        <p></p>
+        <p></p>
+        <p></p>
+        <p></p>
+        <p></p>
+      </div>
+      <input id="population_max" type="range" min=2 max=9 value=9 step=0.1>
+
+      <label id="population_label"/>
+    </div>
+    <script>
+      var pop_slider_min = document.getElementById("population_min");
+      var pop_slider_max = document.getElementById("population_max");
+      var pop_output = document.getElementById("population_label");
+
+      update_pop_text = function() {
+        if (pop_slider_min.value > 2) {
+          min_str = (10**pop_slider_min.value).toLocaleString(undefined, {maximumFractionDigits: 0});
+        } else {
+          min_str = '-';
+        }
+
+        if (pop_slider_max.value < 9) {
+          max_str = (10**pop_slider_max.value).toLocaleString(undefined, {maximumFractionDigits: 0});
+        } else {
+          max_str = '-';
+        }
+
+        return "Population from " + min_str + " to " + max_str
+      }
+
+      pop_output.innerHTML = update_pop_text();
+
+      pop_slider_min.oninput = function() {
+        pop_output.innerHTML = update_pop_text();
+      }
+      pop_slider_max.oninput = function() {
+        pop_output.innerHTML = update_pop_text();
+      }
+      </script>
+  </fieldset>
+
+  <button class="reset" type='submit' name='reset' value='reset'>New Country</button>
+</form>

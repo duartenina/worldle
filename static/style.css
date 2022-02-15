@@ -59,3 +59,80 @@ td, th {
   flex: 1 1 auto;
   padding: 50px;
 }
+
+.regions {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.region_single {
+  flex: 1 1 auto;
+}
+
+.reset {
+  /* height: 2em; */
+  margin-top: 0.5em;
+}
+
+.slider {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  /* background: #444; */
+  /* margin: 20px 0;
+  padding: 20px;
+  position: relative; */
+}
+
+.slider input[type="range"] {
+  width: 95%;
+}
+
+.sliderticks {
+  width: 90%;
+  display: flex;
+  justify-content: space-between;
+  padding: 0 10px;
+}
+
+.sliderticks p {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  text-align: center;
+  word-wrap: normal;
+  width: 1px;
+  background: #ffffff;
+  height: 10px;
+  margin: 0 0 0px 0;
+}
+
+.slidertickslabels {
+  width: 90%;
+  display: flex;
+  justify-content: space-between;
+  padding: 0 10px;
+}
+
+.slidertickslabels p {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  text-align: center;
+  word-wrap: normal;
+  width: 1px;
+  background: rbd(0,0,0,0);
+  height: 10px;
+  line-height: 15px;
+  margin: 5px 0 25px 0;
+}
+
+/* .slider .labels {
+  list-style-type: none;
+  } */
+
+.slider .labels li {
+  display: inline-block;
+  /* width: 24%; */
+}
