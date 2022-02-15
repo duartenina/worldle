@@ -120,10 +120,6 @@ def get_cookies(request, response):
     return cookies
 
 
-# def save_cookies(cookies, response):
-#     pass
-
-
 def create_html(cookies: Worldle_Cookies):
     is_correct = (
         (len(cookies.previous_guesses) > 0)

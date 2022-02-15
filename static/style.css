@@ -70,7 +70,6 @@ td, th {
 }
 
 .reset {
-  /* height: 2em; */
   margin-top: 0.5em;
 }
 
@@ -79,14 +78,20 @@ td, th {
   display: flex;
   justify-content: center;
   flex-wrap: wrap;
-  /* background: #444; */
-  /* margin: 20px 0;
-  padding: 20px;
-  position: relative; */
 }
 
 .slider input[type="range"] {
   width: 95%;
+}
+
+.min {
+  background: green;
+  accent-color: red;
+}
+
+.max {
+  background: red;
+  accent-color: green;
 }
 
 .sliderticks {
