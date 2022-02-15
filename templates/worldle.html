@@ -5,48 +5,16 @@
 {% endblock %}
 
 {% block content %}
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.js"></script>
-  <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/jquery-ui.js"></script>
-  <link href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/themes/ui-lightness/jquery-ui.css" rel="stylesheet" type="text/css" />
 
-  <img class="center" src={{url_for( 'static', filename='images/' + unknown_country + '.png')}}>
+<!-- <div class="flex justify-center">
+  <div class="w-full max-w-lg flex flex-col">
+    {% include 'unknown_guesses.html' %}
+  </div>
+</div> -->
 
-  <table>
-    <tr>
-      <th>Country</th>
-      <th>Distance</th>
-      <th>Direction</th>
-    </tr>
-    {% for row in previous_guesses %}
-    <tr>
-      {% for val in row %}
-      <td>{{val}}</td>
-      {% endfor %}
-    </tr>
-    {% endfor %}
-  </table>
-
-  <form method="post" action="/">
-    {% if correct %}
-      <p align="center">CORRECT!</p>
-    {% else %}
-      <input type="text" id="countries" name='guess_input' autocomplete="off" autofocus="autofocus" value="{{current_input}}">
-
-      <script>
-        $(function() {
-          var availableCountries = [
-            {% for c in country_list %}
-              "{{c}}",
-            {% endfor %}
-          ];
-          $("#countries").autocomplete({
-            source: availableCountries
-          });
-        });
-      </script>
-
-      <button type="submit" name='guess' value='guess'>Guess</button>
-    {% endif %}
-    <button type='submit' name='reset' value='reset'>New Country</button>
-  </form>
+<div class="grid">
+  <div class="grid-col">{% include 'options.html' %}</div>
+  <div class="grid-col">{% include 'unknown_guesses.html' %}</div>
+  <div class="grid-col">{% include 'stats.html' %}</div>
+</div>
 {% endblock %}

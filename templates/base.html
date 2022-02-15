@@ -5,13 +5,9 @@
   <h1>Flaskr</h1>
 </nav> -->
 <section class="content">
-  <div class="flex justify-center">
-    <div class="w-full max-w-lg flex flex-col">
-      <header>
-        {% block header %}{% endblock %}
-      </header>
+  <header>
+    {% block header %}{% endblock %}
+  </header>
 
-      {% block content %}{% endblock %}
-    </div>
-  </div>
+  {% block content %}{% endblock %}
 </section>
